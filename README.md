@@ -1,0 +1,2 @@
+# Result
+Luau Result implementation.
