@@ -9,12 +9,51 @@
 --------------------------------------------------------------------------------
 
 type ResultClass = {
+	ok: typeof(
+		--[[
+			Creates a new ok result containing the value.
+		]]
+		function<T>(value: T): Result<T, never>
+		end
+	),
 	
+	err: typeof(
+		--[[
+			Creates a new err result containing the error.
+		]]
+		function<E>(err: E): Result<never, E>
+		end
+	),
 }
 
 export type Result<T, E> = {
+	Map: typeof(
+		--[[
+			Transforms the value of an ok result and returns a new ok result
+			containing the transformed value. If the result is err, it is returned
+			unchanged.
+		]]
+		function(result: Result<T, E>, transformer: (value: T) -> any): Result<T, E>
+		end
+	),
 	
+	MapErr: typeof(
+		--[[
+			Transforms the error of an err result and returns a new err result
+			containing the transformed error. If the result is ok, it is returned
+			unchanged.
+		]]
+		function(result: Result<T, E>, transformer: (err: E) -> any): Result<T, E>
+		end
+	),
+	
+	isOk: boolean,
+	isErr: boolean,
 }
+
+--------------------------------------------------------------------------------
+-- IMPLEMENTATION
+--------------------------------------------------------------------------------
 
 local Result = {} :: ResultClass
 
@@ -34,7 +73,7 @@ end
 
 function Result:Map(transformer)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 	
 	if type(transformer) ~= "function" then
@@ -50,7 +89,7 @@ end
 
 function Result:MapErr(transformer)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 
 	if type(transformer) ~= "function" then
@@ -66,7 +105,7 @@ end
 
 function Result:AndThen(handler)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 	
 	if type(handler) ~= "function" then
@@ -80,7 +119,7 @@ function Result:AndThen(handler)
 	local result = handler(self._value)
 	
 	if getmetatable(result) ~= Result then
-		error("InvalidArgument: 'handler' must return a Result", 2)
+		error("InvalidArgument: 'handler' must return a result", 2)
 	end
 	
 	return result
@@ -88,7 +127,7 @@ end
 
 function Result:OrElse(handler)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 
 	if type(handler) ~= "function" then
@@ -102,7 +141,7 @@ function Result:OrElse(handler)
 	local result = handler(self._err)
 
 	if getmetatable(result) ~= Result then
-		error("InvalidArgument: 'handler' must return a Result", 2)
+		error("InvalidArgument: 'handler' must return a result", 2)
 	end
 
 	return result
@@ -110,7 +149,7 @@ end
 
 function Result:Match(handlers)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 
 	if type(handlers) ~= "table" or type(handlers.ok) ~= "function" or type(handlers.err) ~= "function" then
@@ -126,7 +165,7 @@ end
 
 function Result:Inspect(inspector)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 
 	if type(inspector) ~= "function" then
@@ -142,7 +181,7 @@ end
 
 function Result:InspectErr(inspector)
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 
 	if type(inspector) ~= "function" then
@@ -158,11 +197,11 @@ end
 
 function Result:Unwrap()
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 	
 	if not self._isOk then
-		error("LogicalError: unwrapping value of err Result", 2)
+		error("LogicalError: unwrapping value of err result", 2)
 	end
 	
 	return self._value
@@ -170,7 +209,7 @@ end
 
 function Result:UnwrapErr()
 	if getmetatable(self) ~= Result then
-		error("InvalidArgument: 'result' must be a Result", 2)
+		error("InvalidArgument: 'result' must be a result", 2)
 	end
 	
 	if self._isOk then
